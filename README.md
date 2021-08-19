@@ -3,7 +3,11 @@ simple use of MQTT to show some data of my FHEM on the Core2
 
 Here are my experiments with the micropython implementation :-( by m5stack in the Core2. Bad documentation, incomplete Micropython modules, bad REPL.
 
+[!main](https://github.com/hjgode/m5home/raw/master/doc/main_edit.gif)
+
 The first (main.py) uses M5MQTT client and I needed to implement a new callback and subscription for every data I want to consume and show in the app. The app also shows the slow image processing, although the image page I designed is able to show 8 values on the small screen with a nice UI.
+
+[!main](https://github.com/hjgode/m5home/raw/master/doc/main_umqtt2_edit.gif)
 
 The second (main_umqtt2.py) used simple2.umqtt and now robust2.umqtt libs I found luckily. Here I only use simple UI elements like text and switch. Only two subscriptions and one callback function to be uesd :-)
 
