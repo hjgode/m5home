@@ -1,7 +1,7 @@
 # m5home
 simple use of MQTT to show some data of my FHEM on the Core2
 
-Here are my experiments with the micropython implementation :-( by m5stack in the Core2. Bad documentation, incomplete Micropython modules, bad REPL.
+Here are my experiments with the micropython implementation :-( by m5stack in the Core2. Bad documentation (https://docs.m5stack.com/en/mpy/advanced/mqtt), incomplete Micropython modules, bad REPL.
 
 ![main](https://github.com/hjgode/m5home/raw/master/doc/main_edit.gif)
 
@@ -9,7 +9,7 @@ The first (main.py) uses M5MQTT client and I needed to implement a new callback 
 
 ![main_umqtt2](https://github.com/hjgode/m5home/raw/master/doc/main_umqtt2_edit.gif)
 
-The second (main_umqtt2.py) used simple2.umqtt and now robust2.umqtt libs I found luckily. Here I only use simple UI elements like text and switch. Only two subscriptions and one callback function to be uesd :-)
+The second (main_umqtt2.py) used simple2.umqtt and now robust2.umqtt libs I found luckily (https://github.com/fizista/micropython-umqtt.robust2). Here I only use simple UI elements like text and switch. Only two subscriptions and one callback function to be uesd :-)
 
 So, the second one is easier to maintain. The data is 're-directed' inside the callback to the right UI.
 
