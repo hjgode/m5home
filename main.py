@@ -1,6 +1,6 @@
 import sys
 # add module search path
-sys.path.append('/res')
+sys.path.append('/flash/res')
 
 from m5stack import *
 import m5stack
@@ -9,6 +9,7 @@ from uiflow import *
 import wifiCfg
 from m5mqtt import M5mqtt
 import ntptime
+import time
 from numbers import Number
 import utime
 import _thread
@@ -50,13 +51,11 @@ screen = M5Screen()
 screen.clean_screen()
 screen.set_screen_bg_color(0xadefeb)
 screen.set_screen_brightness(60)
-
 # idle timer
 idle_counter=0
 
 #an array to store screens
 screens=[]
-
 
 # We create a semaphore (A.K.A lock), avoid race conditions
 lock_obj = _thread.allocate_lock()
@@ -341,12 +340,6 @@ screens.append(screen3)
 #screen.load_screen(screen0) # direct load
 screen.load_screen(screens[0])
 
-"""
-#how sould this be used? It places clockTop only on top of current screen, no on all screens
-screenTop=m5stack.lv.layer_sys
-clockTop = M5Label('TextTop', x=10, y=219, color=0x000, font=FONT_MONT_14, parent=None)
-"""
-
 #########################
 current_screen=0
 
@@ -542,11 +535,7 @@ def tclocktimer1():
   labelBattery1.set_text(getBatSymbol())
   #act=M5Screen.get_inactive_time() #DoesNotWork!
   #labelVersion.set_text(str(act))
-  #print("Wifi connected: ", str(wifiCfg.is_connected()))
-  if wifiCfg.is_connected():
-    wifiLabel3.set_text_color(0x00ff00)
-  else:
-    wifiLabel3.set_text_color(0xff0000)
+#  print("Wifi connected: ", str(wifiCfg.is_connected()))
   pass
 
 """
@@ -671,3 +660,14 @@ mqttclient.set_callback(fun_mqtt_callback)
 mqttclient.subscribe('mqttGenericBridge/HM_5F5A68/state')
 #_thread.start_new_thread(mqtt_check, ())
 """
+
+while True:
+    try:
+        time.sleep_ms(500)
+    except (KeyboardInterrupt) as e:
+        # print('SD mount caught exception {} {}'.format(type(e).__name__, e))
+        print('program interrupted')
+        sys.exit()
+        
+    pass    
+
