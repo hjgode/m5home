@@ -14,11 +14,12 @@ import time
 from numbers import Number
 import utime
 import _thread
+from machine import Timer
 
 #from umqtt.simple import MQTTClient 
 from robust2 import MQTTClient2 as _MQTTClient, MQTTException, pid_gen
 
-sversion='1.2u2'
+sversion='1.3u2'
 
 #screen stuff
 screen = M5Screen()
@@ -261,7 +262,6 @@ mydict['sonoff2']=switch2
 
 labelLocalIp = M5Label('ip', x=10, y=219, color=0x000, font=FONT_MONT_14, parent=None)
 labelRSSI=M5Label('rssi', x=160, y=219, color=0x000, font=FONT_MONT_14, parent=None)
-labelRSSI.set_text(str(getRSSI()))
 
 screen1 = screen.get_act_screen()
 screens.append(screen1)
@@ -330,6 +330,8 @@ print("Wifi connected: ", str(wifiCfg.is_connected()))
 print(wifiCfg.wlan_sta.ifconfig())
 local_ip=wifiCfg.wlan_sta.ifconfig()[0]
 labelLocalIp.set_text(str(local_ip))
+
+labelRSSI.set_text(str(getRSSI()))
 
 ntp = ntptime.client(host='cn.pool.ntp.org', timezone=8)
 rtc.settime('ntp', host='cn.pool.ntp.org', tzone=2)
@@ -419,30 +421,34 @@ screen.load_screen(screens[0])
 
 #as a second timerSch did not work for me, here is a thread
 #ONLY TWO threads allowed!?
-def idle_counter_thread():
+def idle_counter_thread(timer):
   global idle_counter, lockIdle, screen, bThreadsRun, labelClock, labelBattery
-  while bThreadsRun:
-      try:      
-          t=rtc.datetime()
-          txt=padInt(t[4],2)+":"+padInt(t[5],2)+":"+padInt(t[6],2)
-          dtxt=padInt(t[2],2)+":"+padInt(t[1],2)+":"+padInt(t[0],4)
-          lockIdle.acquire()
-          idle_counter+=1
-          labelClock.set_text(dtxt + " " + txt)
-    #      print(dtxt + " " + txt)
-          labelBattery.set_text(str(getBatCapacity())+"%")
-          if idle_counter>15 :
-            screen.set_screen_brightness(30)
-            labelRSSI.set_text(str(getRSSI()))
-      except Exception as e:
-          print('idle_counter_thread Exception: ',str(e))
-          lockIdle.release()
-          return
+#  while bThreadsRun:
+  try:      
+      t=rtc.datetime()
+      txt=padInt(t[4],2)+":"+padInt(t[5],2)+":"+padInt(t[6],2)
+      dtxt=padInt(t[2],2)+":"+padInt(t[1],2)+":"+padInt(t[0],4)
+      lockIdle.acquire()
+      idle_counter+=1
+      labelClock.set_text(dtxt + " " + txt)
+#      print(dtxt + " " + txt)
+      labelBattery.set_text(str(getBatCapacity())+"%")
+      if idle_counter>15 :
+        screen.set_screen_brightness(30)
+        labelRSSI.set_text(str(getRSSI()))
+        idle_counter=0
+  except Exception as e:
+      print('idle_counter_thread Exception: ',str(e))
       lockIdle.release()
-      wait_ms(1000)
+      return
+  lockIdle.release()
+#      wait_ms(1000)
 #  _thread.start_new_thread(idle_counter_thread, ())
   pass
-_thread.start_new_thread(idle_counter_thread, ())
+#_thread.start_new_thread(idle_counter_thread, ()) 
+#using a timer instead of a thread, up to four timers (0-3) are available
+timer0 = Timer(0)
+timer0.init(period=1000, mode=Timer.PERIODIC, callback=idle_counter_thread)
 
 def updateThread():
     global c, bThreadsRun
@@ -463,6 +469,7 @@ while True:
     except (KeyboardInterrupt) as e:
         print('program interrupted')
         bThreadsRun=False
+        timer0.deinit()
         time.sleep(2000)
         sys.exit()
         
