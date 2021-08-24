@@ -92,6 +92,62 @@ class InfoItem:
     return self.InfoItem.line 
   pass
 
+class InfoBenzin:
+  InfoBenzinList=[] #shared class variable, shared between the same instance, but beween new instances
+  # example InfoItem.leftOffset access to shared instance
+  #         but infoitem=InfoItem(...) and then infoitem.leftOffset only changes infoitem var only
+  leftOffset=10
+  topOffset=10 # 25 66 115 166 219
+  Offset0=10
+  Offset1=160
+  Offset2=230
+  line=0
+  line_spacing=18 
+  last_posy=0
+  def __init__(self, x=0, brand='Brand', price='0.00', trend="-", name="name"):
+#    assert isinstance(x, int) and isinstance(y, int)
+    # self. starts a instance variable
+    self.posx = x
+    self.posy = self.line*(self.line_spacing) #automatically add y pos
+    InfoBenzin.last_posy=self.posy
+    myfont=FONT_MONT_18
+    mycolor=0x000000
+    print('InfoBenzin ',InfoBenzin.line) #access the shared var
+    self.brand=brand
+    self.price=price
+    self.trend=trend
+    self.name=name
+    self.brand=M5Label(self.brand, x=self.posx+self.Offset0+self.leftOffset,y=self.posy+self.topOffset, color=mycolor, font=myfont, parent=None)
+    self.price=M5Label(self.price,x=self.posx+self.Offset1+self.leftOffset,y=self.posy+self.topOffset, color=mycolor, font=myfont, parent=None)
+    self.trend=M5Label(self.trend,x=self.posx+self.Offset2+self.leftOffset,y=self.posy+self.topOffset, color=mycolor, font=myfont, parent=None)
+#second line
+    InfoBenzin.line+=1
+    self.line+=1
+    self.posy += self.line_spacing
+    self.name=M5Label(self.name, x=self.posx+self.leftOffset+self.Offset0, y=self.posy+self.topOffset, color=mycolor, font=FONT_MONT_12, parent=None)
+    self.posy += (self.line_spacing) #automatically add y pos
+
+    InfoBenzin.InfoBenzinList.append(self)
+    InfoBenzin.line+=1
+  def setBrand(self, tmp):
+    if len(tmp)>10:
+        tmp=tmp[0:10]
+    self.brand.set_text(tmp)
+  def setPrice(self, tmp):
+    self.price.set_text(tmp)
+  def setTrend(self, tmp):
+    if tmp=='fällt':
+        tmp=SYMBOL_DOWN
+    elif tmp=='steigt':
+        tmp=SYMBOL_UP
+    else:
+        tmp=SYMBOL_MINUS
+    self.trend.set_text(tmp)
+  def setName(self, tmp):
+    self.name.set_text(tmp)
+  def reset_line():
+    InfoItem.line=0
+
 class infoLine():
     def __init__(self):
         screenX=screen.get_act_screen()
@@ -106,7 +162,7 @@ def publish(t,m):
     global c
     topic=t.encode('utf-8')
     msg=m.encode('utf-8')
-    c.publish(topic=topic, msg=msg, retain=False, qos=1, dup=False)
+    c.publish(topic=topic, msg=msg, retain=False, qos=1)
     pass
 
 def switchOn2():
@@ -237,6 +293,7 @@ screen0 = screen.get_act_screen()
 screens.append(screen0)
 ########################## end screen0 #########################
 
+########################## start screen1 #########################
 ###### info screen line
 screen1 = screen.get_new_screen()
 screen.load_screen(screen1)
@@ -268,13 +325,15 @@ screens.append(screen1)
 
 ########################## end screen1 #########################
 
-########################## start screen1 #########################
-#wetter
-screen1 = screen.get_new_screen()
-screen.load_screen(screen1)
+########################## start screen2 #########################
+#wetter heute
+screen2 = screen.get_new_screen()
+screen.load_screen(screen2)
 
 #start a new screen
 InfoItem.reset_line()
+
+bg_text=M5Label('Heute', x=100, y=200, color=0x5f5f5f, font=FONT_MONT_32, parent=None)
 
 infoWeatherTempMin=InfoItem(x=0,label='Min:',value='')
 mydict['Proplanta']=infoWeatherTempMin #but fc0_tempMin
@@ -289,7 +348,66 @@ mydict['Proplanta']=infoWeatherRain # fc0_chOfRainDay
 
 screen2 = screen.get_act_screen()
 screens.append(screen2)
-########################## end screen1 #########################
+########################## end screen2 #########################
+
+########################## start screen3 #########################
+#wetter morgen
+screen3 = screen.get_new_screen()
+screen.load_screen(screen3)
+
+bg_text=M5Label('Morgen', x=100, y=200, color=0x5f5f5f, font=FONT_MONT_32, parent=None)
+
+InfoItem.reset_line()
+
+# proplanta is the upper topic with fc1_... holding the values
+infoWeatherTempMin2=InfoItem(x=0,label='Min:',value='')
+mydict['Proplanta']=infoWeatherTempMin2 #but fc1_tempMin
+infoWeatherTempMax2=InfoItem(x=0,label='Max:',value='')
+mydict['Proplanta']=infoWeatherTempMax2 # fc1_tempMax
+infoWeatherText2=InfoItem(x=0,label='Wetter:',value='')
+infoWeatherText2.value.set_text_font(FONT_MONT_18) #use a smaller font here
+mydict['Proplanta']=infoWeatherText2 # fc0_weatherDay
+infoWeatherRain2=InfoItem(x=0,label='Regen:',value='')
+mydict['Proplanta']=infoWeatherRain2 # fc0_chOfRainDay
+
+
+screen3 = screen.get_act_screen()
+screens.append(screen3)
+########################## end screen3 #########################
+
+########################## start screen4 #########################
+#wetter morgen
+screen3 = screen.get_new_screen()
+screen.load_screen(screen3)
+
+bg_text=M5Label('Benzinpreise', x=60, y=200, color=0x5f5f5f, font=FONT_MONT_32, parent=None)
+
+InfoBenzin.reset_line()
+
+# BenzinPreise is the upper topic with [0-9]_... holding the values
+infoBenzin0=InfoBenzin(x=0,brand='Brand0:',price='0.00',trend="-",name='')
+mydict['BenzinPreise']=infoBenzin0
+
+# 0_brand JET
+# 0_e10_price
+# 0_e10_trend
+# 0_name JET NEUSS JUELICHER LANDSTR. 52
+
+infoBenzin1=InfoBenzin(x=0,brand='Brand1:',price='0.00',trend="-",name='')
+mydict['BenzinPreise']=infoBenzin1
+
+infoBenzin2=InfoBenzin(x=0,brand='Brand2:',price='0.00',trend="-",name='')
+mydict['BenzinPreise']=infoBenzin2
+
+infoBenzin3=InfoBenzin(x=0,brand='Brand3:',price='0.00',trend="-",name='')
+mydict['BenzinPreise']=infoBenzin3
+
+infoBenzin4=InfoBenzin(x=0,brand='Brand4:',price='0.00',trend="-",name='')
+mydict['BenzinPreise']=infoBenzin4
+
+screen3 = screen.get_act_screen()
+screens.append(screen3)
+########################## end screen4 #########################
 
 screen.load_screen(screens[0])
                    
@@ -333,7 +451,9 @@ labelLocalIp.set_text(str(local_ip))
 
 labelRSSI.set_text(str(getRSSI()))
 
-ntp = ntptime.client(host='cn.pool.ntp.org', timezone=8)
+
+#ntp = ntptime.client(host='cn.pool.ntp.org', timezone=8)
+print('ntp time update for RTC')
 rtc.settime('ntp', host='cn.pool.ntp.org', tzone=2)
 
 #def fun_mqtt_callback(f):
@@ -375,13 +495,50 @@ def fun_mqtt_callback(topic, msg, retained, dup):
             if s[2] == 'fc0_chOfRainDay':
                 print('update for >','fc0_chOfRainDay','<')
                 infoWeatherRain.setHumi(msg.decode('utf-8'))
+            # same for tomorrow
+            if s[2] == 'fc1_tempMin':
+                print('update for >','fc1_tempMin','<')
+                infoWeatherTempMin2.setTemp(msg.decode('utf-8'))
+            if s[2] == 'fc1_tempMax':
+                print('update for >','fc1_tempMax','<')
+                infoWeatherTempMax2.setTemp(msg.decode('utf-8'))
+            if s[2] == 'fc1_weatherDay':
+                print('update for >','fc1_weatherDay','<')
+                infoWeatherText2.setValue(msg.decode('utf-8'))
+            if s[2] == 'fc1_chOfRainDay':
+                print('update for >','fc1_chOfRainDay','<')
+                infoWeatherRain2.setHumi(msg.decode('utf-8'))
             return
-        if s[1]=='HM_5F5A68' or s[1]=='duSchlafFenster':
-            
+        if s[1]=='HM_5F5A68' or s[1]=='duSchlafFenster':            
             if s[2] == 'state' or s[2] == 'status':
                 print('update for >',s[1],'<')
                 t.setState(msg.decode('utf-8'))
             return
+        if s[1]=='BenzinPreise':
+            print('update for >',s[1],'<','=>',s[2],'m=>',m,'<')
+            if s[2].startswith('0'):
+                info=infoBenzin0
+            elif s[2].startswith('1'):
+                info=infoBenzin1
+            elif s[2].startswith('2'):
+                info=infoBenzin2
+            elif s[2].startswith('3'):
+                info=infoBenzin3
+            elif s[2].startswith('4'):
+                info=infoBenzin4
+            else:
+                print('unknown input ',s[2])
+                return #unknown input
+            if s[2].endswith("_brand"):
+                info.setBrand(m)
+            elif s[2].endswith("e10_price"):
+                info.setPrice(m)
+            elif s[2].endswith("e10_trend"):
+                info.setTrend(m)
+            elif s[2].endswith("_name"):
+                info.setName(m)
+            else:
+                print('unknown payload ',m)
         #set switch2 state
         if s[1]=='sonoff2':
             print('found sonoff2')
@@ -421,6 +578,7 @@ screen.load_screen(screens[0])
 
 #as a second timerSch did not work for me, here is a thread
 #ONLY TWO threads allowed!?
+#Now, this is a timer callback
 def idle_counter_thread(timer):
   global idle_counter, lockIdle, screen, bThreadsRun, labelClock, labelBattery
 #  while bThreadsRun:
@@ -428,20 +586,29 @@ def idle_counter_thread(timer):
       t=rtc.datetime()
       txt=padInt(t[4],2)+":"+padInt(t[5],2)+":"+padInt(t[6],2)
       dtxt=padInt(t[2],2)+":"+padInt(t[1],2)+":"+padInt(t[0],4)
-      lockIdle.acquire()
+ #     lockIdle.acquire() #acquire a lock before access global var
       idle_counter+=1
       labelClock.set_text(dtxt + " " + txt)
 #      print(dtxt + " " + txt)
       labelBattery.set_text(str(getBatCapacity())+"%")
-      if idle_counter>15 :
+      if idle_counter % 15==0 :
         screen.set_screen_brightness(30)
         labelRSSI.set_text(str(getRSSI()))
+      if idle_counter>300 : # arround every 5 minutes
+        print('ntp time update for RTC')
+        rtc.settime('ntp', host='de.pool.ntp.org', tzone=2)
         idle_counter=0
+#      lockIdle.release()
   except Exception as e:
       print('idle_counter_thread Exception: ',str(e))
-      lockIdle.release()
       return
-  lockIdle.release()
+  except (KeyboardInterrupt) as e:
+      print('program interrupted')
+      bThreadsRun=False
+      time.sleep(2000)
+      sys.exit()
+#  finally:
+#      lockIdle.release()
 #      wait_ms(1000)
 #  _thread.start_new_thread(idle_counter_thread, ())
   pass
