@@ -1,0 +1,42 @@
+lv_font_conv --size 12 --format bin --bpp 1 --font segmono_boot.ttf -o segmono_boot-12.bin --range 0x20-0xff
+
+then in micropython
+
+# load the font file from filesystem
+myfont = lv.font_load("S:res/PHT-ASCII-20.bin")  # Refer here to convert your font file: https://github.com/lvgl/lv_font_conv
+
+or in Core2 M5Stack????
+
+try
+	M5Label("text",0,0,font=myfont,parent=None)
+    label=M5Label('test äöpß-end',x=0,y=0, color=0x000000, font=myfont, parent=None)
+
+    from m5stack import *
+    import m5stack
+    from m5stack_ui import *
+    from uiflow import *
+    import lvgl as lv
+    myfont1=lv.font_load('/flash/res/segmono_boot-16.bin')
+    label=M5Label('test p-end',x=0,y=0, color=0x000000, font=myfont1, parent=None)
+
+    label=M5Label('aousz äöüßtest p-end',x=0,y=40, color=0x000000, font=myfont1, parent=None)
+
+    myfont=lv.font_load('/flash/res/segmono_boot-16.bin')
+    label=M5Label('test p-end',x=0,y=0, color=0x000000, font=myfont, parent=None)
+    ##### above does not work on Core2 :-(
+
+-OR-
+
+import lvgl as lv
+lv.init()
+screen=lv.scr_act()
+screen.clean()
+myfont=lv.font_load('/flash/res/segmono_boot-16.bin')
+style = lv.style_t()
+style.init()
+label = lv.label(screen)
+style.set_text_font(lv.STATE.DEFAULT, myfont)
+label.add_style(label.PART.MAIN, style)
+label.set_text("Hi LVGL(Load fonts dynamically)")
+label.align(None, lv.ALIGN.CENTER, 0, 0)
+##### above does not work on Core2 :-(

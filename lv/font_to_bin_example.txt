@@ -1,0 +1,63 @@
+lv_font_conv --size 20 --format bin --bpp 4 --font /usr/share/wine/fonts/tahoma.ttf -o tahoma20bpp4.bin --range 0x20-0x7f
+
+COPY FILE:
+ampy -p /dev/ttyUSB0 put tahoma20bpp4.bin /flash/res/tahoma20bpp4.bin
+
+VERIFY
+ampy -p /dev/ttyUSB0 ls /flash/res
+/flash/res/default.png
+/flash/res/error.png
+/flash/res/mix.wav
+/flash/res/robust2.py
+/flash/res/tahoma20bpp4.bin
+/flash/res/temp.png
+
+
+font20=m5stack.lv.font_load('/flash/res/tahoma20bpp4.bin')
+label=M5Label('font20',x=20,y=60, color=0x000000, font=font20, parent=None)
+
+fontseg20=m5stack.lv.font_load('/flash/res/segmono20bpp4.bin')
+label=M5Label('font20',x=20,y=100, color=0x000000, font=fontseg20, parent=None)
+
+>>> import segmono20
+>>> font20=segmono20._font
+>>> label=M5Label('font20',x=20,y=60, color=0x000000, font=font20, parent=None)
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "m5stack_ui.py", line 615, in __init__
+  File "m5stack_ui.py", line 626, in set_text_font
+SyntaxError: Can't convert bytes to lv_font_t!
+
++++++++++++++++++++++++++++++++++++++++++++++++
+>>> dir(FONT_MONT_32)
+['__class__', '__dereference__', 'SIZE', 'base_line', 'cast', 'cast_instance', 'dsc', 'free', 'get_bitmap_fmt_txt', 'get_glyph_bitmap', 'get_glyph_dsc', 'get_glyph_dsc_fmt_txt', 'get_glyph_width', 'get_line_height', 'line_height', 'subpx', 'underline_position', 'underline_thickness', 'user_data']
+------------------------------------------------
+import segmono20 #py module
+dir(segmono20)
+['__class__', '__name__', 'reverse', '__file__', 'height', 'version', 'bs', 'baseline', 'max_width', 'hmap', 'monospaced', 'min_ch', 'max_ch', '_font', '_sparse', '_mvfont', '_mvsp', 'ifb', 'get_ch']
+###############################################
+import sys
+# add module search path
+sys.path.append('/flash/res')
+sys.path.reverse() #revert search direction to load custom libs first
+
+import lvgl as lv
+from m5stack import *
+import m5stack
+from m5stack_ui import *
+from uiflow import *
+
+screen = M5Screen()
+screen.clean_screen()
+screen.set_screen_bg_color(0xadefeb)
+screen.set_screen_brightness(60)
+
+label=M5Label('Test',x=20,y=20, color=0x000000, font=FONT_MONT_32, parent=None)
+
+font20=m5stack.lv.font_t()
+font20=m5stack.lv.font_load('/flash/res/tahoma20bpp4.bin')
+label=M5Label('font20',x=20,y=60, color=0x000000, font=font20, parent=None)
+
+fontseg20=m5stack.lv.font_load('/flash/res/segmono20bpp4.bin')
+label=M5Label('font20',x=20,y=100, color=0x000000, font=fontseg20, parent=None)
+
